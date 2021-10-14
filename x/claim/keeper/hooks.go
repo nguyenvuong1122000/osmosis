@@ -65,6 +65,14 @@ func (h Hooks) AfterSwap(ctx sdk.Context, sender sdk.AccAddress, poolId uint64, 
 	h.k.AfterSwap(ctx, sender)
 }
 
+//todo : implement method
+func (h Hooks) AfterProposalFailedMinDeposit(ctx sdk.Context, proposalID uint64) {
+}
+
+//todo : implement method
+func (h Hooks) AfterProposalVotingPeriodEnded(ctx sdk.Context, proposalID uint64) {
+}
+
 // governance hooks
 func (h Hooks) AfterProposalSubmission(ctx sdk.Context, proposalID uint64) {}
 func (h Hooks) AfterProposalDeposit(ctx sdk.Context, proposalID uint64, depositorAddr sdk.AccAddress) {

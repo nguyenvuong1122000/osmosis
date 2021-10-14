@@ -129,7 +129,7 @@ func PowApprox(base sdk.Dec, exp sdk.Dec, precision sdk.Dec) sdk.Dec {
 		c, cneg := AbsDifferenceWithSign(a, bigK)
 		// On this line, bigK == i.
 		bigK.Set(sdk.NewDec(i)) // TODO: O(n) bigint allocation happens
-		term.MulMut(c).MulMut(x).QuoMut(bigK)
+		term.Mul(c).Mul(x).QuoMut(bigK)
 
 		// a is mutated on absDifferenceWithSign, reset
 		a.Set(exp)

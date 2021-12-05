@@ -123,4 +123,5 @@ replace (
 	github.com/tendermint/tendermint => github.com/tendermint/tendermint v0.34.14
 	github.com/tendermint/tm-db => github.com/osmosis-labs/tm-db v0.6.5-0.20210911033928-ba9154613417
 	google.golang.org/grpc => google.golang.org/grpc v1.33.2
-)
+	github.com/cosmos/ibc-go/v2 v2.0.0 => ../ibc-test
+	)

@@ -15,6 +15,10 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
+	ica "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts"
+	icakeeper "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/keeper"
+	icatypes "github.com/cosmos/ibc-go/v2/modules/apps/27-interchain-accounts/types"
+
 	ibcclient "github.com/cosmos/ibc-go/v2/modules/core/02-client"
 	ibcclienttypes "github.com/cosmos/ibc-go/v2/modules/core/02-client/types"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v2/modules/core/03-connection/types"
@@ -159,6 +163,7 @@ var (
 		poolincentives.AppModuleBasic{},
 		epochs.AppModuleBasic{},
 		claim.AppModuleBasic{},
+		ica.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -227,6 +232,8 @@ type OsmosisApp struct {
 	PoolIncentivesKeeper poolincentiveskeeper.Keeper
 	TxFeesKeeper         txfeeskeeper.Keeper
 
+	ICAKeeper icakeeper.Keeper
+
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
@@ -271,7 +278,7 @@ func NewOsmosisApp(
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
 		gammtypes.StoreKey, lockuptypes.StoreKey, claimtypes.StoreKey, incentivestypes.StoreKey,
-		epochstypes.StoreKey, poolincentivestypes.StoreKey, authzkeeper.StoreKey, txfeestypes.StoreKey,
+		epochstypes.StoreKey, poolincentivestypes.StoreKey, icatypes.StoreKey, authzkeeper.StoreKey, txfeestypes.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -296,6 +303,8 @@ func NewOsmosisApp(
 	app.CapabilityKeeper = capabilitykeeper.NewKeeper(appCodec, keys[capabilitytypes.StoreKey], memKeys[capabilitytypes.MemStoreKey])
 	scopedIBCKeeper := app.CapabilityKeeper.ScopeToModule(ibchost.ModuleName)
 	scopedTransferKeeper := app.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
+	scopedICAKeeper := app.CapabilityKeeper.ScopeToModule(icatypes.ModuleName)
+
 	app.CapabilityKeeper.Seal()
 
 	// add keepers
@@ -428,18 +437,26 @@ func NewOsmosisApp(
 		app.StakingKeeper,
 		app.UpgradeKeeper,
 		scopedIBCKeeper)
-
+	executeKeeper := icakeeper.NewExecuteKeeper(app.MsgServiceRouter())
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec, keys[ibctransfertypes.StoreKey], app.GetSubspace(ibctransfertypes.ModuleName),
-		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper, executeKeeper,
 		app.AccountKeeper, app.BankKeeper, scopedTransferKeeper,
 	)
 	transferModule := transfer.NewAppModule(app.TransferKeeper)
 
+	app.ICAKeeper = icakeeper.NewKeeper(
+		keys[icatypes.MemStoreKey], appCodec, keys[icatypes.StoreKey],
+		app.IBCKeeper.ChannelKeeper, &app.IBCKeeper.PortKeeper,
+		app.AccountKeeper, scopedICAKeeper, executeKeeper, app,
+	)
+	icaModule := ica.NewAppModule(app.ICAKeeper)
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := porttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
+	ibcRouter.AddRoute(icatypes.ModuleName, icaModule)
+
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	// create evidence keeper with router
@@ -614,6 +631,7 @@ func NewOsmosisApp(
 		incentivestypes.ModuleName,
 		epochstypes.ModuleName,
 		lockuptypes.ModuleName,
+		icatypes.ModuleName,
 		authz.ModuleName,
 	)
 
@@ -871,4 +889,10 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(gammtypes.ModuleName)
 
 	return paramsKeeper
+}
+
+func (app *OsmosisApp) OnTxSucceeded(ctx sdk.Context, sourcePort, sourceChannel string, txHash []byte, txBytes []byte) {
+}
+
+func (app *OsmosisApp) OnTxFailed(ctx sdk.Context, sourcePort, sourceChannel string, txHash []byte, txBytes []byte) {
 }

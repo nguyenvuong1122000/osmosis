@@ -391,6 +391,32 @@ func (pa BalancerPool) IsActive(curBlockTime time.Time) bool {
 	return true
 }
 
+func (pa BalancerPool) SetExitFee(exitFee sdk.Dec) error {
+	if exitFee.IsNegative() {
+		return types.ErrNegativeExitFee
+	}
+
+	if exitFee.GTE(sdk.OneDec()) {
+		return types.ErrTooMuchExitFee
+	}
+
+	pa.PoolParams.ExitFee = exitFee
+	return nil
+}
+
+func (pa BalancerPool) SetSwapFee(swapFee sdk.Dec) error {
+	if swapFee.IsNegative() {
+		return types.ErrNegativeExitFee
+	}
+
+	if swapFee.GTE(sdk.OneDec()) {
+		return types.ErrTooMuchExitFee
+	}
+
+	pa.PoolParams.ExitFee = swapFee
+	return nil
+}
+
 func (params BalancerPoolParams) Validate(poolWeights []types.PoolAsset) error {
 	if params.ExitFee.IsNegative() {
 		return types.ErrNegativeExitFee

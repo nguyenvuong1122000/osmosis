@@ -3,6 +3,8 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/gov/client/cli"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"strconv"
 	"strings"
 	"time"
@@ -327,6 +329,141 @@ func NewExitSwapShareAmountIn() *cobra.Command {
 
 	cmd.Flags().AddFlagSet(FlagSetJoinSwapExternAmount())
 	flags.AddTxFlagsToCmd(cmd)
+	_ = cmd.MarkFlagRequired(FlagPoolId)
+
+	return cmd
+}
+
+//func NewCmdSubmitUpdateClientProposal() *cobra.Command {
+//	cmd := &cobra.Command{
+//		Use:   "update-client [subject-client-id] [substitute-client-id]",
+//		Args:  cobra.ExactArgs(2),
+//		Short: "Submit an update IBC client proposal",
+//		Long: "Submit an update IBC client proposal along with an initial deposit.\n" +
+//			"Please specify a subject client identifier you want to update..\n" +
+//			"Please specify the substitute client the subject client will be updated to.",
+//		RunE: func(cmd *cobra.Command, args []string) error {
+//			clientCtx, err := client.GetClientTxContext(cmd)
+//			if err != nil {
+//				return err
+//			}
+//
+//			title, err := cmd.Flags().GetString(govcli.FlagTitle)
+//			if err != nil {
+//				return err
+//			}
+//
+//			description, err := cmd.Flags().GetString(govcli.FlagDescription)
+//			if err != nil {
+//				return err
+//			}
+//
+//			subjectClientID := args[0]
+//			substituteClientID := args[1]
+//
+//			content := types.NewClientUpdateProposal(title, description, subjectClientID, substituteClientID)
+//
+//			from := clientCtx.GetFromAddress()
+//
+//			depositStr, err := cmd.Flags().GetString(govcli.FlagDeposit)
+//			if err != nil {
+//				return err
+//			}
+//			deposit, err := sdk.ParseCoinsNormalized(depositStr)
+//			if err != nil {
+//				return err
+//			}
+//
+//			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+//			if err != nil {
+//				return err
+//			}
+//
+//			if err = msg.ValidateBasic(); err != nil {
+//				return err
+//			}
+//
+//			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+//		},
+//	}
+//
+//	cmd.Flags().String(govcli.FlagTitle, "", "title of proposal")
+//	cmd.Flags().String(govcli.FlagDescription, "", "description of proposal")
+//	cmd.Flags().String(govcli.FlagDeposit, "", "deposit of proposal")
+//
+//	return cmd
+//}
+
+func NewChangeFeeProposal() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "change-pool-fees-proposal [swap-fee] [exit-fee] [pool-id]",
+		Short: "exit fee swap fee change proposal",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			exitFee, err := sdk.NewDecFromStr(args[0])
+			if err != nil {
+				return err
+			}
+
+			swapFee, err := sdk.NewDecFromStr(args[1])
+			if err != nil {
+				return err
+			}
+			poolIdStr, _ := cmd.Flags().GetString(FlagPoolId)
+
+			poolId, err := strconv.ParseInt(poolIdStr, 10, 64)
+			if err != nil {
+				return err
+			}
+
+			title, err := cmd.Flags().GetString(cli.FlagTitle)
+			if err != nil {
+				return err
+			}
+
+			description, err := cmd.Flags().GetString(cli.FlagDescription)
+			if err != nil {
+				return err
+			}
+			from := clientCtx.GetFromAddress()
+			fmt.Println("from abc", clientCtx)
+			depositStr, err := cmd.Flags().GetString(cli.FlagDeposit)
+			if err != nil {
+				return err
+			}
+
+			deposit, err := sdk.ParseCoinsNormalized(depositStr)
+			if err != nil {
+				return err
+			}
+
+			content := types.NewChangePoolParamProposal(title, description, uint64(poolId), exitFee, swapFee)
+
+			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
+			if err != nil {
+				return err
+			}
+
+			if err = msg.ValidateBasic(); err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	cmd.Flags().String(cli.FlagTitle, "", "title of proposal")
+	cmd.Flags().String(cli.FlagDescription, "", "description of proposal")
+	cmd.Flags().String(cli.FlagDeposit, "", "deposit")
+	cmd.Flags().String(FlagPoolId, "", "pool-id")
+
+	_ = cmd.MarkFlagRequired(cli.FlagTitle)
+	_ = cmd.MarkFlagRequired(cli.FlagDescription)
+	_ = cmd.MarkFlagRequired(cli.FlagDeposit)
 	_ = cmd.MarkFlagRequired(FlagPoolId)
 
 	return cmd

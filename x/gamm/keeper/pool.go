@@ -164,3 +164,28 @@ func (k Keeper) getPoolAndInOutAssets(
 	outAsset, err = pool.GetPoolAsset(tokenOutDenom)
 	return
 }
+
+// editPoolParams
+func (k Keeper) EditPoolFeeParams(ctx sdk.Context, poolId uint64, exitFee sdk.Dec, swapFee sdk.Dec) error {
+	pool, err := k.GetPool(ctx, poolId)
+	if err != nil {
+		return err
+	}
+
+	err = pool.SetExitFee(exitFee)
+	if err != nil {
+		return err
+	}
+
+	err = pool.SetSwapFee(swapFee)
+	if err != nil {
+		return err
+	}
+
+	err = k.SetPool(ctx, pool)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}

@@ -37,6 +37,14 @@ type PoolI interface {
 	GetTokenBalance(denom string) (sdk.Int, error)
 	NumAssets() int
 	IsActive(curBlockTime time.Time) bool
+	SetExitFee(exitFee sdk.Dec) error
+	SetSwapFee(swapFee sdk.Dec) error
+
+	//setExitFee(exitFee sdk.Dec) error
+	//setExitFee, setSwapFee
+	//setExitFee(exitFee sdk.Dec) error
+	//setSwapFee(swapFee sdk.Dec) error
+
 }
 
 var (

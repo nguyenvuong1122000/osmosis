@@ -3,6 +3,7 @@ package gamm
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/osmosis-labs/osmosis/x/gamm/keeper"
 	"github.com/osmosis-labs/osmosis/x/gamm/pool-models/balancer"
 	"github.com/osmosis-labs/osmosis/x/gamm/types"
@@ -55,6 +56,21 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", types.ModuleName, msg)
+		}
+	}
+}
+
+func ChangeParamProposal(ctx sdk.Context, k keeper.Keeper, p *types.ChangePoolParamProposal) error {
+	return k.HandleChangeParamProposal(ctx, p)
+}
+
+func NewPoolChangeFeeProposalHandler(k keeper.Keeper) govtypes.Handler {
+	return func(ctx sdk.Context, content govtypes.Content) error {
+		switch c := content.(type) {
+		case *types.ChangePoolParamProposal:
+			return ChangeParamProposal(ctx, k, c)
+		default:
+			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized  proposal content type: %T", c)
 		}
 	}
 }

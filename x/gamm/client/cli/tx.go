@@ -334,66 +334,6 @@ func NewExitSwapShareAmountIn() *cobra.Command {
 	return cmd
 }
 
-//func NewCmdSubmitUpdateClientProposal() *cobra.Command {
-//	cmd := &cobra.Command{
-//		Use:   "update-client [subject-client-id] [substitute-client-id]",
-//		Args:  cobra.ExactArgs(2),
-//		Short: "Submit an update IBC client proposal",
-//		Long: "Submit an update IBC client proposal along with an initial deposit.\n" +
-//			"Please specify a subject client identifier you want to update..\n" +
-//			"Please specify the substitute client the subject client will be updated to.",
-//		RunE: func(cmd *cobra.Command, args []string) error {
-//			clientCtx, err := client.GetClientTxContext(cmd)
-//			if err != nil {
-//				return err
-//			}
-//
-//			title, err := cmd.Flags().GetString(govcli.FlagTitle)
-//			if err != nil {
-//				return err
-//			}
-//
-//			description, err := cmd.Flags().GetString(govcli.FlagDescription)
-//			if err != nil {
-//				return err
-//			}
-//
-//			subjectClientID := args[0]
-//			substituteClientID := args[1]
-//
-//			content := types.NewClientUpdateProposal(title, description, subjectClientID, substituteClientID)
-//
-//			from := clientCtx.GetFromAddress()
-//
-//			depositStr, err := cmd.Flags().GetString(govcli.FlagDeposit)
-//			if err != nil {
-//				return err
-//			}
-//			deposit, err := sdk.ParseCoinsNormalized(depositStr)
-//			if err != nil {
-//				return err
-//			}
-//
-//			msg, err := govtypes.NewMsgSubmitProposal(content, deposit, from)
-//			if err != nil {
-//				return err
-//			}
-//
-//			if err = msg.ValidateBasic(); err != nil {
-//				return err
-//			}
-//
-//			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-//		},
-//	}
-//
-//	cmd.Flags().String(govcli.FlagTitle, "", "title of proposal")
-//	cmd.Flags().String(govcli.FlagDescription, "", "description of proposal")
-//	cmd.Flags().String(govcli.FlagDeposit, "", "deposit of proposal")
-//
-//	return cmd
-//}
-
 func NewChangeFeeProposal() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "change-pool-fees-proposal [swap-fee] [exit-fee] [pool-id]",
